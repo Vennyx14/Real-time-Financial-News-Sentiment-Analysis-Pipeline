@@ -5,21 +5,15 @@ import pandas as pd
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
-# ==========================================
-# CẤP PHÉP BẢO MẬT CHO JAVA 21+ (KHẮC PHỤC LỖI GETSUBJECT)
-# ==========================================
 os.environ["_JAVA_OPTIONS"] = "-Djava.security.manager=allow"
 
-# Cấu hình môi trường
 sys.stdout.reconfigure(encoding='utf-8')
 os.environ["PYSPARK_PYTHON"] = sys.executable
 os.environ["PYSPARK_DRIVER_PYTHON"] = sys.executable
 
 print("Khởi động Lớp Xử lý Lô (Batch Layer) với PySpark...")
 
-# ==========================================
 # 1. HÚT DỮ LIỆU TỪ DATALAKE (MongoDB)
-# ==========================================
 client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = client["financial_db"]
 collection_raw = db["news_sentiment"]
@@ -31,9 +25,7 @@ if not raw_data:
     print("Kho dữ liệu trống! Cần chạy luồng Stream để tích lũy dữ liệu trước.")
     sys.exit()
 
-# ==========================================
-# 2. ĐƯA LÊN DÀN MÁY TÍNH PHÂN TÁN SPARK (CÓ GIỚI HẠN RAM)
-# ==========================================
+# 2. ĐƯA LÊN DÀN MÁY TÍNH PHÂN TÁN SPARK
 spark = SparkSession.builder \
     .appName("BatchProcessing_Lambda") \
     .config("spark.driver.memory", "1g") \
@@ -43,15 +35,12 @@ spark = SparkSession.builder \
     
 spark.sparkContext.setLogLevel("WARN")
 
-# ĐÂY CHÍNH LÀ 2 DÒNG ĐÃ TẠO RA BIẾN 'df'
 pdf = pd.DataFrame(raw_data)
 df = spark.createDataFrame(pdf)
 
 print(f"Đã nạp {df.count()} bản ghi vào Spark. Bắt đầu tính toán tổng hợp...")
 
-# ==========================================
 # 3. TRANSFORMATION (Chuyển đổi & Tổng hợp dữ liệu)
-# ==========================================
 df = df.withColumn("date", F.to_date("timestamp"))
 
 daily_summary = df.groupBy("date", "source") \
@@ -66,9 +55,7 @@ daily_summary = daily_summary.withColumn("neg_ratio_percent", F.round((F.col("NE
 print("\n--- BẢNG BÁO CÁO TỔNG HỢP SAU KHI XỬ LÝ (BATCH VIEW) ---")
 daily_summary.show()
 
-# ==========================================
 # 4. GHI VÀO SERVING LAYER (Lưu trữ lũy đẳng)
-# ==========================================
 report_records = daily_summary.toPandas().to_dict('records')
 
 from pymongo import UpdateOne
