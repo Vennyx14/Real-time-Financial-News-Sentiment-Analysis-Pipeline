@@ -8,9 +8,7 @@ from vnstock import Vnstock
 
 st.set_page_config(page_title="Financial News Sentiment & Market", layout="wide", page_icon="📈")
 
-# ==========================================
 # 1. HÚT DỮ LIỆU STREAMING (REAL-TIME VIEW)
-# ==========================================
 @st.cache_data(ttl=10)
 def load_news_data():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -27,9 +25,7 @@ def load_news_data():
     df = df.sort_values(by="timestamp", ascending=False)
     return df
 
-# ==========================================
 # 2. HÚT DỮ LIỆU BATCH (BATCH VIEW)
-# ==========================================
 @st.cache_data(ttl=60)
 def load_batch_data():
     client = pymongo.MongoClient("mongodb://localhost:27017/")
@@ -44,9 +40,7 @@ def load_batch_data():
     df = df.sort_values(by=["date", "source"], ascending=[False, True])
     return df
 
-# ==========================================
 # 3. GỌI API THỊ TRƯỜNG CHỨNG KHOÁN (VN-INDEX)
-# ==========================================
 @st.cache_data(ttl=3600)
 def load_market_data():
     end_date = datetime.now().strftime('%Y-%m-%d')
@@ -60,10 +54,8 @@ def load_market_data():
         st.error(f"Lỗi kết nối API Chứng khoán: {e}")
         return pd.DataFrame()
 
-# ==========================================
 # 4. XÂY DỰNG GIAO DIỆN (UI) LAMBDA ARCHITECTURE
-# ==========================================
-st.title("📊 Dashboard Phân Tích Cảm Xúc & Thị Trường (Lambda Architecture)")
+st.title("Dashboard Phân Tích Cảm Xúc & Thị Trường (Lambda Architecture)")
 st.markdown("Hệ thống xử lý Big Data kết hợp luồng Streaming (Real-time) và luồng Batch (Historical) để phân tích tương quan với VN-Index.")
 
 df_news = load_news_data()
