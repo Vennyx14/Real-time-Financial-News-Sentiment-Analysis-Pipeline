@@ -16,8 +16,6 @@ Dự án này xây dựng một Data Pipeline phân tán, ứng dụng **Kiến 
 
 Hệ thống được chia thành 4 phân hệ cốt lõi hoạt động hoàn toàn độc lập (Decoupled):
 
-![Sơ đồ kiến trúc](architecture_diagram.png)
-
 1. **Ingestion Layer:** Bot Python cào dữ liệu thô, tiền xử lý HTML/ISO, và đẩy vào hàng đợi của **Apache Kafka**.
 2. **Speed Layer (Stream Processing):** **PySpark Structured Streaming** lắng nghe Kafka, chia micro-batch, dùng PhoBERT to inference điểm AI và lưu kết quả vào Collection `news_sentiment` của **MongoDB**.
 3. **Batch Layer (Batch Processing):** PySpark khởi chạy định kỳ, gom nhóm dữ liệu lịch sử trên Datalake, tính toán tỷ trọng % cảm xúc theo ngày/nguồn báo và đẩy vào Collection `daily_reports`.
@@ -84,6 +82,10 @@ python batch_processor.py
 * Nếu gặp lỗi `getSubject is supported only if a security manager is allowed` khi chạy Spark trên Java 21+, hệ thống đã tự động xử lý thông qua biến môi trường `_JAVA_OPTIONS`.
 
 ---
+
+
+## Video Demo
+https://github.com/user-attachments/assets/c7ab7ac8-7b8f-454c-a3cc-32f4811a5216
 
 ## Tác giả
 * **Hà Đức Dũng** (24022300)
