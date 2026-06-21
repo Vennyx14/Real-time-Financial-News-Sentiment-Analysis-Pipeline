@@ -28,9 +28,7 @@ producer = KafkaProducer(
     value_serializer=lambda x: json.dumps(x).encode('utf-8')
 )
 
-# ==========================================================
 # CƠ CHẾ KHỬ TRÙNG TỪ ĐẦU NGUỒN (PERSISTENT CACHE WARM-UP)
-# ==========================================================
 print("Đang đồng bộ danh sách link từ MongoDB để chống trùng lặp...")
 try:
     mongo_client = pymongo.MongoClient("mongodb://localhost:27017/", serverSelectionTimeoutMS=2000)
@@ -53,14 +51,12 @@ def fetch_and_send_news():
     
     for source_name, rss_url in RSS_FEEDS.items():
         try:
-            # Gắn mặt nạ Chrome vào lệnh lấy tin để đi xuyên tường lửa
             feed = feedparser.parse(rss_url, agent=MAGIC_BROWSER_AGENT)
             
             for entry in feed.entries[:limit]:
                 link = entry.link
                 
                 if link not in seen_links:
-                    # Nắn lại font chữ tiêu đề trước khi gửi
                     clean_headline = fix_vietnamese_font(entry.title)
                     
                     data = {
@@ -95,5 +91,4 @@ if __name__ == "__main__":
         else:
             print(f"-> Hoàn tất gửi {count} bài báo mới vào Kafka.")
             
-        # Tạm nghỉ 30 phút (1800 giây) trước khi quét lại
         time.sleep(1800)
