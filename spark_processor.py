@@ -20,9 +20,7 @@ sentiment_analyzer = pipeline(
     device=-1 
 )
 
-# ==========================================
 # 2. KẾT NỐI MONGODB 
-# ==========================================
 print("Đang kết nối tới MongoDB...")
 mongo_client = pymongo.MongoClient("mongodb://localhost:27017/")
 db = mongo_client["financial_db"]               # Tạo Database tên: financial_db
@@ -55,9 +53,7 @@ parsed_df = df.selectExpr("CAST(value AS STRING)") \
 
 print("Hệ thống SS! Đang chờ dữ liệu...")
 
-# ==========================================
 # CƠ CHẾ GOM MẺ & GHI LŨY ĐẲNG (IDEMPOTENT SINK)
-# ==========================================
 def process_batch(batch_df, batch_id):
     if batch_df.count() == 0:
         return
@@ -71,7 +67,6 @@ def process_batch(batch_df, batch_id):
     try:
         results = sentiment_analyzer(headlines)
         
-        # Sử dụng kỹ thuật Bulk Write để tăng tốc độ ghi tích hợp kiểm tra trùng
         from pymongo import UpdateOne
         operations = []
         
@@ -84,7 +79,7 @@ def process_batch(batch_df, batch_id):
                 "sentiment_label": results[i]['label'],
                 "confidence_score": float(results[i]['score'])
             }
-            # Lệnh ma thuật: Nếu tìm thấy link trùng thì KHÔNG GHI ĐÈ ($setOnInsert)
+            # Nếu tìm thấy link trùng thì KHÔNG GHI ĐÈ ($setOnInsert)
             # Nếu chưa có link này thì hành động như lệnh Insert thông thường (upsert=True)
             operations.append(
                 UpdateOne({"link": links[i]}, {"$setOnInsert": record}, upsert=True)
